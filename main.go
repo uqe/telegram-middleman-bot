@@ -176,7 +176,10 @@ func processUpdate(update TelegramUpdate) {
 	var text string
 	chatId := update.Message.Chat.Id
 	if strings.HasPrefix(update.Message.Text, "/start") {
-		id := uuid.NewV4().String()
+		u, err := uuid.NewV4()
+		id := u.String()
+		if err != nil {
+		}
 		invalidateUserToken(chatId)
 		StorePut(id, StoreObject{User: update.Message.From, ChatId: chatId})
 		text = "Here is your token you can use to send messages to your Telegram account:\n\n_" + id + "_"
@@ -211,7 +214,7 @@ func getConfig() BotConfig {
 	certPathPtr := flag.String("certPath", "", "Path of your SSL certificate when using webhook mode")
 	keyPathPtr := flag.String("keyPath", "", "Path of your private SSL key when using webhook mode")
 	portPtr := flag.Int("port", 8080, "Port for the webserver to listen on")
-	rateLimitPtr := flag.Int("rateLimit", 10, "Max number of requests per recipient per hour")
+	rateLimitPtr := flag.Int("rateLimit", 300, "Max number of requests per recipient per hour")
 
 	flag.Parse()
 
@@ -260,11 +263,11 @@ func main() {
 	limiterMap = make(map[string]int)
 	maxReqsPerHous = config.RateLimit
 
-	http.HandleFunc("/api/messages", messageHandler)
+	http.HandleFunc("/poll", messageHandler)
 
 	if config.Mode == "webhook" {
 		fmt.Println("Using webhook mode.")
-		http.HandleFunc("/api/updates", webhookUpdateHandler)
+		http.HandleFunc("/hook", webhookUpdateHandler)
 	} else {
 		fmt.Println("Using long-polling mode.")
 		go startPolling()
