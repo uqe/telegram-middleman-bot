@@ -101,7 +101,7 @@ func messageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	limiterMap[recipientId] += 1
 
-	err = sendMessage(recipientId, "*"+m.Origin+"* wrote:\n\n"+m.Text)
+	err = sendMessage(recipientId, "*"+m.Origin+"* \n\n"+m.Text)
 	if err != nil {
 		w.WriteHeader(500)
 		return
